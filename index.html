@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine's Day Card</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .video-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 122, 178, 0.3);
+            z-index: 1;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .fallback-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff7eb3, #ff758c);
+            z-index: -2;
+        }
+
+        .landing-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            transform-style: preserve-3d;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate3d(1, 1, 0, 0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate3d(1, 1, 0, 2deg);
+            }
+            100% {
+                transform: translateY(0) rotate3d(1, 1, 0, 0deg);
+            }
+        }
+
+        .envelope {
+            width: 300px;
+            height: 200px;
+            background: #f0f0f0;
+            position: relative;
+            border-radius: 10px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .envelope:hover {
+            transform: scale(1.05);
+        }
+
+        .envelope .front {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .envelope .front::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #e6e6e6;
+            transform-origin: bottom;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .envelope:hover .front::before {
+            transform: translateY(-2px);
+        }
+
+        .envelope .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            transform-origin: top;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            clip-path: polygon(0 0, 50% 50%, 100% 0);
+            z-index: 2;
+        }
+
+        .envelope:hover .flap {
+            transform: rotateX(5deg);
+        }
+
+        .button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            background: #ff4b6e;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 3;
+            box-shadow: 0 5px 15px rgba(255, 75, 110, 0.3);
+        }
+
+        .button:hover {
+            background: #ff2d55;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .envelope.active {
+            transform: translateY(-1000px) scale(0);
+            opacity: 0;
+        }
+
+        .letter {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .letter.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .letter h1 {
+            text-align: center;
+            color: #ff4b6e;
+            font-size: 3em;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.5s;
+        }
+
+        .letter.active h1 {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .letter p {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s 0.2s;
+        }
+
+        .letter.active p {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gallery {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 60px;
+            padding: 40px;
+        }
+
+        .image-container {
+            position: relative;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.5s;
+            height: 300px;
+        }
+
+        .image-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .popup {
+            position: absolute;
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 20;
+            line-height: 1.5;
+            bottom: calc(100% + 20px);
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+        }
+
+        .image-container:hover .popup {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        @media (max-width: 1024px) {
+            .gallery {
+                gap: 40px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .image-container {
+                height: 250px;
+            }
+
+            .popup {
+                width: 200px;
+                left: 50% !important;
+                right: auto !important;
+                top: calc(100% + 20px) !important;
+                transform: translateX(-50%) scale(0.8) !important;
+            }
+
+            .image-container:hover .popup {
+                transform: translateX(-50%) scale(1) !important;
+            }
+
+            .envelope {
+                width: 250px;
+                height: 170px;
+            }
+
+            .letter h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="video-background">
+        <div class="fallback-background"></div>
+        <video autoplay muted loop playsinline>
+            <source src="6916633_Motion Graphics_Motion Graphic_3840x2160.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <div class="landing-container">
+        <div class="envelope-wrapper">
+            <div class="envelope">
+                <div class="front">
+                    <div class="flap"></div>
+                </div>
+                <button class="button" style="width: 60px; height: 60px; padding: 0; border-radius: 50%; transform: translate(-50%, -50%) rotate(45deg);">
+                    <div style="width: 100%; height: 100%; background: #ff4b6e; position: relative; transform: rotate(0deg);">
+                        <div style="position: absolute; width: 100%; height: 100%; background: #ff4b6e; border-radius: 50%; left: -50%;"></div>
+                        <div style="position: absolute; width: 100%; height: 100%; background: #ff4b6e; border-radius: 50%; top: -50%;"></div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="letter">
+        <h1>Happy Valentine's Day</h1>
+        <p>On this special day, let's celebrate our journey together through these beautiful memories...</p>
+        
+        <div class="gallery">
+            <div class="image-container">
+            <img src="image1.jpeg" alt="Memory 1" class="memory-image">
+            <div class="popup">Remember our first (kinda) date? The day we got a little bit more closer.</div>
+            </div>
+            <div class="image-container">
+            <img src="image2.jpeg" alt="Memory 2" class="memory-image">
+            <div class="popup">Non stop fun and banter I had with you and the gang. One of my favourite memories FR</div>
+            </div>
+            <div class="image-container">
+            <img src="image3.jpeg" alt="Memory 3" class="memory-image">
+            <div class="popup">Most fun I ever had on Durga Puja(remembering the movie situation ;D)</div>
+            </div>
+            <div class="image-container">
+            <img src="image4.jpeg" alt="Memory 4" class="memory-image">
+            <div class="popup">Us in our madeup Beneras(the picture we gonna show our kids and grandkids<3)</div>
+            </div>
+            <div class="image-container">
+            <img src="image5.jpeg" alt="Memory 5" class="memory-image">
+            <div class="popup">nights like this should come annually lol</div>
+            </div>
+            <div class="image-container">
+            <img src="image6.jpeg" alt="Memory 6" class="memory-image">
+            <div class="popup">posing our way through the farewell</div>
+            </div>
+            <div class="image-container">
+            <img src="image7.jpeg" alt="Memory 7" class="memory-image">
+            <div class="popup">Saraswati puja,Valentines Day and you in my arms...Sounds about right<3</div>
+            </div>
+            <div class="image-container">
+            <img src="image8.jpeg" alt="Memory 8" class="memory-image">
+            <div class="popup">sailing through our final exams together...call that a yin and yang of fun and stress</div>
+            </div>
+            <div class="image-container">
+            <img src="image9.jpeg" alt="Memory 9" class="memory-image">
+            <div class="popup">From celebrating your Birthday with infinite fun and banter...</div>
+            </div>
+            <div class="image-container">
+            <img src="image10.jpeg" alt="Memory 10" class="memory-image">
+            <div class="popup">To celebrating my birthday with the same goofiness and laughter...you have always been a constant<3</div>
+            </div>
+            <div class="image-container">
+            <img src="image11.jpeg" alt="Memory 11" class="memory-image">
+            <div class="popup">The reunion that we so waited for...</div>
+            </div>
+            <div class="image-container">
+            <img src="image12.jpeg" alt="Memory 12" class="memory-image">
+            <div class="popup">The only eyes I want to stare at all my life<3.</div>
+            </div>
+            </div>
+            <div class="valentines-message-page">
+                
+            </div>
+
+            <style>
+            #passage {
+                font-size: 1.5em;
+                line-height: 1.5;
+                padding: 20px;
+                margin-bottom: 300px;
+                
+               
+                
+            }
+            .valentines-message-page {
+                position: relative;
+                width: 100%;
+                height: 400px; 
+                /* background: linear-gradient(to bottom, rgb(255, 252, 254) 5%, #ffb6c1 25%, #ff69b4 100%); */
+                background-image: url("https://images.unsplash.com/photo-1596436643132-6e58c3ae4cd4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGhlYXJ0fGVufDB8fDB8fHww");
+                background-size: cover;
+                background-position: center;
+                height: 800px;
+                width: 100%;
+                padding: 20px;
+                text-align: center;
+                opacity: 0;
+                transform: translateY(50px);
+                transition: all 0.5s;
+            }
+
+            .valentines-message-page.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .valentines-message {
+                max-width: 800px;
+                margin-bottom: 0 auto;
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 15px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                font-size: 1.2em;
+                line-height: 1.5;
+            }
+            </style>
+
+            <script>
+            const galleryObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        document.querySelector('.valentines-message-page').classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            galleryObserver.observe(document.querySelector('.gallery').lastElementChild);
+            </script>
+        </div>
+        </div>
+
+        <style>
+        .memory-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        .image-container {
+            position: relative;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.5s;
+            height: 500px; /* Increased height */
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .image-container:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .popup {
+            position: absolute;
+            width: 200px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 20;
+            line-height: 1.5;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+        }
+
+        .image-container:hover .popup {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+        </style>
+
+    <script>
+        document.querySelector('.button').addEventListener('click', function() {
+            document.querySelector('.envelope').classList.add('active');
+            setTimeout(() => {
+                document.querySelector('.letter').classList.add('active');
+            }, 500);
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 200);
+                }
+            });
+        }, {
+            threshold: 0.2,
+            rootMargin: '50px'
+        });
+
+        document.querySelectorAll('.image-container').forEach(container => {
+            observer.observe(container);
+        });
+
+        const video = document.querySelector('video');
+        video.addEventListener('error', function() {
+            video.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
